@@ -2,27 +2,28 @@ import numpy as np
 import matplotlib.pyplot as plot
 
 if __name__ == "__main__":
-    print("midi note number: ", end="")
-    notenum = int(input())
-    print("alpha: ", end="")
-    alpha = float(input())
-    print("beta: ", end="")
-    beta = float(input())
-    print("sampling frequency (Hz): ", end="")
-    sphz = float(input())
-    print("how long time (s): ", end="")
-    lt = float(input())
-    
-    freq = 440. * 2 ** ((notenum - 69) / 12.)
+    """周波数、重量、減衰比を与えれば機械の周波数応答を自動計算する
+    """
+    print("Normal mode(f0) frequency (Hz): ", end="")
+    f0 = float(input())
+    print("Mass (kg): ", end="")
+    mass = float(input())
+    print("Damping ratio [0,1]: ", end="")
+    damping_ratio = float(input())
 
-    times = np.arange(0., lt, 1. / sphz)  # 0～t秒まで48kHzで
+    # 臨界減衰比は下式で求められる
+    # f0 = sqrt(k/m)
+    # f0^2 = k/m
+    # f0^2 * m = k
 
-    frequencies = np.arange(1., sphz, 1.)  # 周波数
-    daming_ratio = alpha / (2 * frequencies) + (beta * frequencies) / 2. # レイリー減衰
+    # 減衰比は下式で求められる
+    # z = c / cc
 
-    plot.figure()
-    plot.plot(frequencies, daming_ratio)
-    plot.plot(frequencies, alpha / (2. * frequencies))
-    plot.plot(frequencies, beta * frequencies / 2.)
-    plot.tight_layout()
-    plot.show()
+    k = f0**2. * mass
+    critical_damping = 2. * np.sqrt(mass * k)
+    damping_coeff = critical_damping / damping_ratio
+
+    print("--------------------------------------------------")
+    print("Spring constant (N): {}".format(k))
+    print("Critical damping ratio: {}".format(critical_damping))
+    print("Damping Coefficient: {}".format(damping_coeff))
