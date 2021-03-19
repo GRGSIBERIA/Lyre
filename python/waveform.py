@@ -22,5 +22,7 @@ if __name__ == "__main__":
 
     plot.figure()
     plot.plot(frequencies, daming_ratio)
+    plot.plot(frequencies, alpha / (2. * frequencies))
+    plot.plot(frequencies, beta * frequencies / 2.)
     plot.tight_layout()
     plot.show()
