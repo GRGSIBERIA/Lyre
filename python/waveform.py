@@ -63,7 +63,7 @@ if __name__ == "__main__":
     t0 = 0.         # 初期時刻 [s]
     tf = 10.        # 終了時刻 [s]
     dt = 1./48000.  # 時刻の刻み幅 [s]
-    t = np.arange(0, tf, dt)
+    t = np.arange(t0, tf, dt)
 
     sol = odeint(func, state0, t, args=(m, k, c))
     plot.plot(t, sol[:,0])
