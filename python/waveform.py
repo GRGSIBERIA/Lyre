@@ -18,7 +18,6 @@ def func(state, t, m, k, c):
 
 if __name__ == "__main__":
     """周波数、重量、減衰比を与えれば機械の周波数応答を自動計算する
-    """
     print("Normal mode(f0) frequency (Hz): ", end="")
     f0 = float(input())
     print("Mass (kg): ", end="")
@@ -42,6 +41,7 @@ if __name__ == "__main__":
     print("Spring constant (N): {}".format(k))
     print("Critical damping ratio: {}".format(critical_damping))
     print("Damping Coefficient: {}".format(damping_coeff))
+    """
 
     m = 0.5
     k = 1000.
@@ -59,14 +59,18 @@ if __name__ == "__main__":
  
     # 減衰振動の場合
     if zeta < 1:
+        """減衰振動
+        """
         X = np.sqrt(np.power(state0[0], 2) + np.power((state0[1] + sigma * state0[0])/omega_d, 2))
         phi = np.arctan((state0[1] + (sigma * state0[0]))/(state0[0] * omega_d))
         theory = np.exp(- sigma * t) * X * np.cos(omega_d * t - phi)
-    # 臨界減衰の場合
     elif zeta == 1:
+        """臨界減衰
+        """
         theory = state0[0] * np.exp(- omega * t) * ((n_order_v + 1) * omega * t + 1)
-    # 過減衰の場合
     else:
+        """過減衰
+        """
         theory = state0[0] * np.exp(- zeta * omega * t) * (\
             np.cosh(omega * t * np.sqrt(zeta ** 2 - 1))\
             + (n_order_v + zeta) / (np.sqrt(zeta ** 2 + 1))\
@@ -78,6 +82,9 @@ if __name__ == "__main__":
     t = np.arange(0, tf, dt)
 
     sol = odeint(func, state0, t, args(m, k, c))
+    plot.plot(t, sol[:,0])
+    plot.tight_layout()
+    plot.show()
 
     """参考文献
     https://watlab-blog.com/2019/06/10/python-1dof-mck/
