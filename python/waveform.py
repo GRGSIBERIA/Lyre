@@ -25,23 +25,25 @@ if __name__ == "__main__":
         m (float): 質量 [kg]
         Q (float): Quarity Factor, Q値
         tf (float): 終了時刻 [s]
+        radius (float): 弦の半径 [m]
     """
 
-    f0 = 7.            # 固有振動数 [Hz]
+    f0 = 7.             # 固有振動数 [Hz]
     m = 0.5             # 質量 [kg]
     Q = 20.             # Q値
+    radius = 0.001      # 弦の半径 [m]
 
     k = f0 ** 2 * m             # 剛性 [N/m]
     cc = 2. * np.sqrt(m * k)    # 臨界減衰係数
     c = cc / Q                  # 減衰係数 [N･s/m]
     
-    
-    
     state0 = [0., 10.]   # 初期値 [初期変位, 初速]
 
     t0 = 0.         # 初期時刻 [s]
     tf = 10.        # 終了時刻 [s]
-    dt = 1./48000.  # 時刻の刻み幅 [s]
+    spfq = 48000.   # サンプリング周波数 [Hz]
+    dt = 1./spfq    # 時刻の刻み幅 [s]
+    numof_harmonic = int(spfq / f0) # 倍音の数
     t = np.arange(t0, tf, dt)
 
     sol = odeint(func, state0, t, args=(m, k, c))
