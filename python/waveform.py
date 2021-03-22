@@ -6,7 +6,7 @@ def func(state, t, m, k, c):
     """ソルバ
 
     Args:
-        state (odeint.state): 常微分方程式のfunction側
+        state (odeint.state): 常微分方程式の変位x1と速度x2
         t (float): 時刻 [s]
         m (float): 質点の重さ [kg]
         k (float): 質点の弾性 [N/m]
