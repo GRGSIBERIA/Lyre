@@ -16,12 +16,15 @@ def func(state, t, m, k, c):
     dxdt = -(c/m) * x2 - (k/m) * x1
     return [x2, dxdt]
 
+def compute_waveform():
+    pass
+
 if __name__ == "__main__":
     """周波数、重量、減衰比を与えれば機械の周波数応答を自動計算する
     Args以下のコメントはプログラムの入力に使われる変数
     
     Args:
-        f0 (float): 固有振動数 [Hz]
+        selected_keynum (int): 基本周波数として入力したいMIDIノート番号
         L0 (float): 弦の長さ [m]
         Q (float): Quarity Factor, Q値
         tf (float): 終了時刻 [s]
@@ -29,39 +32,56 @@ if __name__ == "__main__":
         ratio (float): 全体の長さから見た押さえた位置 [0,1]
     """
 
-    f0 = 7.             # 固有振動数 [Hz]
+    selected_keynum = 69
+    midi_freqs = [440. * 2.**((float(n)-69.)/12.) for n in range(128)]
+
     L0 = 0.5            # 弦の長さ [m]
-    Q = 20.             # Q値
+    Q = 2000.             # Q値
     radius = 0.001      # 弦の半径 [m]
     ratio = 0.3         # 全体の長さから見た押さえた位置 [0,1]
 
     # 以下は定数とする
-    rho = 1145.         # 弦の密度 [kg/m^3], 1145 kg/m^3 はナイロン弦
+    dens = 1145.         # 弦の密度 [kg/m^3], 1145 kg/m^3 はナイロン弦
     E = 5.4e9           # ヤング率 [GPa]
 
+    # 固有振動数 [Hz]
+    f0 = midi_freqs[selected_keynum]
+
     """
-    2Lf = sqrt(T/rhoA)
-    (2Lf)^2 = T/rhoA
-    T = (2Lf)^2 rho A
+    f0 = 1/2L sqrt(T/rho)
+    2Lf0 = sqrt(T/rho)
+    (2Lf0)^2 = T/rho
+    (2Lf0)rho = T
     """
 
     A = radius * radius * np.pi         # 断面 [m^2]
     m = A * L0 * dens                   # 質量 [kg]
+    rho = A * dens                      # 線密度 [kg/m]
     k = f0**2. * m                      # 剛性 [N/m]
     cc = 2. * np.sqrt(m * k)            # 臨界減衰係数
     c = cc / Q                          # 減衰係数 [N･s/m]
-    sigma = (2. * L0 * f0)**2. * rho    # 応力
+    sigma = (2. * L0 * f0)**2. * rho    # 応力 [Pa]
     delta = (L0 * sigma) / E            # 引張後のひずみ
+    I = (radius * 2.)**4. * np.pi / 4   # 断面二次モーメント [m^4]
+    T = (2. * L0 * f0)**2. * rho        # 張力 [N]
 
     state0 = [0., 10.]   # 初期値 [初期変位, 初速]
 
     t0 = 0.         # 初期時刻 [s]
-    tf = 10.        # 終了時刻 [s]
+    tf = 60.        # 終了時刻 [s]
     spfq = 48000.   # サンプリング周波数 [Hz]
     dt = 1./spfq    # 時刻の刻み幅 [s]
     t = np.arange(t0, tf, dt)
     
     numof_harmonic = int(spfq / f0) # 倍音の数
+
+    B = (np.pi / (L0 + delta))**2. * E * I / T
+    ns = [n + 2 for n in range(numof_harmonic - 2)]
+
+    for n in ns:
+        elastic_fn = n * f0 * np.sqrt(1. + B * n**2.)
+        print(n, elastic_fn, elastic_fn**2. * m)
+        
 
     sol = odeint(func, state0, t, args=(m, k, c))
     plot.plot(t, sol[:,0])
