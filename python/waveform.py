@@ -45,14 +45,14 @@ class Waveform:
         B = (np.pi / (L0 + delta))**2. * ((E * I) / T)
 
         self.__numof_harmonic = int((spfq / 2.) / f0) # 倍音の数
-        self.__ns = [n + 2 for n in range(numof_harmonic - 2)]
+        self.__ns = [n + 2 for n in range(self.__numof_harmonic - 2)]
 
         self.__spfq = spfq
         self.__f0 = f0
         self.__L0 = L0
         self.__Q = Q
         self.__dt = dt
-        self.__t = T
+        self.__t = t
         self.__A = A
         self.__m = m
         self.__rho = rho
@@ -69,15 +69,17 @@ class Waveform:
         k0 = self.__f0**2. * self.__m       # 剛性 [N/m]
         cc = 2. * np.sqrt(self.__m * k0)    # 臨界減衰係数
         c0 = cc / self.__Q                  # 減衰係数 [N･s/m]
-        wave = np.array(odeint(func, state0, self.__t, args=(self.__m, k0, c0))[:,0])
+
+        wave = odeint(func, state0, self.__t, args=(self.__m, k0, c0))[:,0]
+
         harmonics = []
 
-        for n in ns:
+        for n in self.__ns:
             fn = float(n) * f0 * np.sqrt(1. + self.__B * float(n)**2.) # 部分音周波数
             kn = fn**2. * self.__m      # 剛性 [N/m]
             cc = 2. * np.sqrt(m * kn)
             cn = cc / self.__Q
-            hw = odeint(func, state0, self.__t, args(self.__m, kn, cn))[:,0]
+            hw = odeint(func, state0, self.__t, args=(self.__m, kn, cn))[:,0]
             wave += hw
 
         return wave
@@ -136,18 +138,11 @@ if __name__ == "__main__":
     dt = 1./spfq    # 時刻の刻み幅 [s]
     t = np.arange(t0, tf, dt)
     
-    numof_harmonic = int(spfq / f0) # 倍音の数
+    sound = Waveform(spfq, f0, L0, Q, radius, ratio, tf)
+    wave = sound.generate(10)
 
-    B = (np.pi / (L0 + delta))**2. * E * I / T
-    ns = [n + 2 for n in range(numof_harmonic - 2)]
+    plot.plot(t, wave)
 
-    for n in ns:
-        elastic_fn = n * f0 * np.sqrt(1. + B * n**2.)
-        print(n, elastic_fn, elastic_fn**2. * m)
-        
-
-    sol = odeint(func, state0, t, args=(m, k, c))
-    plot.plot(t, sol[:,0])
     plot.tight_layout()
     plot.show()
 
