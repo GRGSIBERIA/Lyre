@@ -65,7 +65,9 @@ class Waveform:
         self.__I = I
         self.__T = T
         self.__B = B
-
+        self.__radius = radius
+        print(self.__radius)
+        print(self.__f0)
     
     def get_t(self):
         """時刻の配列を取得する
@@ -97,7 +99,7 @@ class Waveform:
         harmonics = []
         mode_num = 1. / ratio
         mode = 0
-
+        """
         for n in self.__ns:
             mode += 1
             acount = 1.
@@ -112,8 +114,8 @@ class Waveform:
             hw = odeint(func, state0, self.__t, args=(self.__m, kn, cn))[:,0]
 
             #wave += hw * acount
-            wave += hw
-
+            wave += hw / n
+        """
         return wave
 
 if __name__ == "__main__":
@@ -129,14 +131,14 @@ if __name__ == "__main__":
         ratio (float): 全体の長さから見た押さえた位置 [0,1]
     """
 
-    notenum = 40
+    notenum = 50
     L0 = 0.5            # 弦の長さ [m]
     Q = 2000.           # Q値
 
     ratio = 0.3         # 全体の長さから見た押さえた位置 [0,1]
     tf = 10.            # 終了時刻 [s]
     spfq = 8000.        # サンプリング周波数 [Hz]
-    v0 = 0.1             # 初期速度
+    v0 = 0.05             # 初期速度
 
     sound = Waveform(spfq, notenum, L0, Q, tf)
     waveform = sound.generate(v0, ratio)
@@ -146,7 +148,8 @@ if __name__ == "__main__":
     plot.tight_layout()
     plot.show()
 
-    maxv = 32768. / max(np.abs(waveform))
+    maxv = 16384. / max(np.abs(waveform))
+    print(maxv)
     w16 = [int(x * maxv) for x in waveform]
     bi_wave = struct.pack("h" * len(w16), *w16)
 
