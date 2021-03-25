@@ -1,4 +1,5 @@
 import wave
+import struct
 import numpy as np
 from scipy.integrate import odeint
 import matplotlib.pyplot as plot
@@ -22,18 +23,20 @@ class Waveform:
     dens = 1145.         # 弦の密度 [kg/m^3], 1145 kg/m^3 はナイロン弦
     E = 5.4e9            # ヤング率 [GPa]
 
-    def __init__(self, spfq: int, f0: float, L0: float, Q: float, radius: float, tf: float):
+    def __init__(self, spfq: int, notenum: int, L0: float, Q: float, tf: float):
         """波形クラス
 
         Args:
             spfq (int): サンプリング周波数
-            f0 (float): 基本周波数 [Hz]
+            notenum (int): ノート番号
             L0 (float): 弦の長さ [m]
             Q (float): Q値
-            radius (float): 弦の半径 [m]
             
             tf (float): 終了時刻 [s]
         """
+        f0 = 440. * 2.**(float(notenum-69)/12.)
+        radius = (-0.0019 * notenum + 0.1234) * 25.4 / 2. / 1000.
+
         dt = 1. / float(spfq)
         t = np.arange(0, tf, dt)            # 時間の配列 [s]
         A = radius * radius * np.pi         # 断面 [m^2]
@@ -81,7 +84,7 @@ class Waveform:
             ratio (float): 弦を弾いた位置 [0,1]
 
         Returns:
-            [type]: [description]
+            np.ndarray: 波形のnumpy配列
         """
         state0 = [0., v0]
 
@@ -102,7 +105,7 @@ class Waveform:
                 mode = 0
                 acount = mode / mode_num
 
-            fn = float(n) * f0 * np.sqrt(1. + self.__B * float(n)**2.) # 部分音周波数
+            fn = float(n) * self.__f0 * np.sqrt(1. + self.__B * float(n)**2.) # 部分音周波数
             kn = fn**2. * self.__m      # 剛性 [N/m]
             cc = 2. * np.sqrt(self.__m * kn)
             cn = cc / self.__Q
@@ -126,36 +129,29 @@ if __name__ == "__main__":
         ratio (float): 全体の長さから見た押さえた位置 [0,1]
     """
 
-    selected_keynum = 40
-    midi_freqs = [440. * 2.**((float(n)-69.)/12.) for n in range(128)]
-
+    notenum = 40
     L0 = 0.5            # 弦の長さ [m]
     Q = 2000.           # Q値
-
-    # 弦の半径 [m], ex. E2=0.58mm
-    radius = 0.0005842
 
     ratio = 0.3         # 全体の長さから見た押さえた位置 [0,1]
     tf = 10.            # 終了時刻 [s]
     spfq = 8000.        # サンプリング周波数 [Hz]
+    v0 = 0.1             # 初期速度
 
-    # 固有振動数 [Hz]
-    f0 = midi_freqs[selected_keynum]
-
-    sound = Waveform(spfq, f0, L0, Q, radius, tf)
-    waveform = sound.generate(10, ratio)
+    sound = Waveform(spfq, notenum, L0, Q, tf)
+    waveform = sound.generate(v0, ratio)
 
     plot.plot(sound.get_t(), waveform)
 
     plot.tight_layout()
     plot.show()
 
-    maxv = 32767. / max(waveform)
+    maxv = 32768. / max(np.abs(waveform))
     w16 = [int(x * maxv) for x in waveform]
     bi_wave = struct.pack("h" * len(w16), *w16)
 
     wf = wave.Wave_write("test.wav")
-    param = (1, 2, int(spfq), 'NONE', 'not compressed')
+    param = (1, 2, int(spfq), len(bi_wave), 'NONE', 'not compressed')
     wf.setparams(param)
     wf.writeframes(bi_wave)
     wf.close()
