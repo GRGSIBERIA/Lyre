@@ -37,8 +37,6 @@ class Waveform:
         f0 = 440. * 2.**(float(notenum-69)/12.)
         radius = (-0.0019 * notenum + 0.1234) * 25.4 / 2. / 1000.
 
-        dt = 1. / float(spfq)
-        t = np.arange(0, tf, dt)            # 時間の配列 [s]
         A = radius * radius * np.pi         # 断面 [m^2]
         m = A * L0 * Waveform.dens          # 質量 [kg]
         rho = A * Waveform.dens             # 線密度 [kg/m]
@@ -55,8 +53,9 @@ class Waveform:
         self.__f0 = f0
         self.__L0 = L0
         self.__Q = Q
-        self.__dt = dt
-        self.__t = t
+        self.__tf = tf
+        self.__dt = 1. / float(self.__spfq)
+        self.__t = np.arange(0, self.__tf, self.__dt)
         self.__A = A
         self.__m = m
         self.__rho = rho
@@ -77,8 +76,10 @@ class Waveform:
         """
         return self.__t
 
+    def __sinwave(self, freq: float, amp: float) -> np.ndarray:
+        return np.sin(2. * np.pi * freq * self.__t) * (1. / np.exp(self.__t * amp))
     
-    def generate(self, v0: float, ratio: float):
+    def generate(self, v0: float, ratio: float) -> np.ndarray:
         """波形を清々する
 
         Args:
@@ -88,34 +89,13 @@ class Waveform:
         Returns:
             np.ndarray: 波形のnumpy配列
         """
-        state0 = [0., v0]
+        amp = 1.
+        wave = self.__sinwave(self.__f0, amp)
 
-        k0 = self.__f0**2. * self.__m       # 剛性 [N/m]
-        cc = 2. * np.sqrt(self.__m * k0)    # 臨界減衰係数
-        c0 = cc / self.__Q                  # 減衰係数 [N･s/m]
+        for ns in self.__ns:
+            amp += 1.
+            wave += self.__sinwave(self.__f0 * ns, amp)
 
-        wave = odeint(func, state0, self.__t, args=(self.__m, k0, c0))[:,0]
-
-        harmonics = []
-        mode_num = 1. / ratio
-        mode = 0
-        """
-        for n in self.__ns:
-            mode += 1
-            acount = 1.
-            if mode > mode_num:
-                mode = 0
-                acount = mode / mode_num
-
-            fn = float(n) * self.__f0 * np.sqrt(1. + self.__B * float(n)**2.) # 部分音周波数
-            kn = fn**2. * self.__m      # 剛性 [N/m]
-            cc = 2. * np.sqrt(self.__m * kn)
-            cn = cc / self.__Q
-            hw = odeint(func, state0, self.__t, args=(self.__m, kn, cn))[:,0]
-
-            #wave += hw * acount
-            wave += hw / n
-        """
         return wave
 
 if __name__ == "__main__":
