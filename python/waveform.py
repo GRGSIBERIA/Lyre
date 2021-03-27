@@ -43,7 +43,7 @@ class Waveform:
         self.__B = B
 
     def __sinwave(self, t: np.ndarray, freq: float, amp: float) -> np.ndarray:
-        return np.sin(2. * np.pi * freq * t) * (1. / np.exp(t * amp))
+        return np.sin(2. * np.pi * freq * t) * (self.__f0 / np.exp(t * amp))
     
     def generate(self, v0: float, ratio: float, start: float, end: float) -> np.ndarray:
         """波形を清々する
@@ -57,13 +57,14 @@ class Waveform:
         Returns:
             np.ndarray: 波形のnumpy配列
         """
-        t = np.arange(start, end, self.__dt)
         amp = 1.
+
+        t = np.arange(start, end, self.__dt)
         wave = self.__sinwave(t, self.__f0, amp)
 
-        for ns in self.__ns:
-            amp += 1.
-            f_elastic = self.__f0 * ns * np.sqrt(1 + self.__B * ns ** 2.)
+        for n in self.__ns:
+            f_elastic = self.__f0 * n * np.sqrt(1 + self.__B * n ** 2.)
+
             wave += self.__sinwave(t, f_elastic, amp)
 
         return wave
@@ -81,7 +82,7 @@ if __name__ == "__main__":
         Q (float): Quarity Factor, Q値
         tf (float): 終了時刻 [s]
         radius (float): 弦の半径 [m]
-        ratio (float): 全体の長さから見た押さえた位置 [0,1]
+        ratio (float): 全体の長さから見た押さえた位置 [0,1] 
     """
 
     notenum = 50
@@ -92,7 +93,7 @@ if __name__ == "__main__":
     v0 = 0.05             # 初期速度
     start = 0.
     end = 10. 
-    B = 0.0001
+    B = 0.000001
 
     sound = Waveform(spfq, notenum, B)
     waveform = sound.generate(v0, ratio, start, end)
