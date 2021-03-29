@@ -1,6 +1,6 @@
 ﻿#include <windows.h>
-#include <mmeapi.h>
 #include <mmsystem.h>
+#include <unordered_map>
 
 /******************************************************************
  * 関数の前方宣言
@@ -22,7 +22,9 @@ void Render(HWND hwnd);
 HDC hBackDC = NULL;			//!< バックバッファ
 HBITMAP hBackBitmap = NULL;	//!< バックバッファのビットマップ領域
 bool dvorakMode = false;	//!< Dvorakモードの有無
-HMIDIOUT hMidiOut;
+
+std::unordered_map<int, int> dvorakToTone;
+std::unordered_map<int, int> qwertyToTone;
 
 int WINAPI WinMain(
 	HINSTANCE hInstance, HINSTANCE hPrevInstance,
@@ -32,6 +34,7 @@ int WINAPI WinMain(
 	WNDCLASS wc;
 	HWND hwnd;
 	MSG msg;
+	HMIDIOUT hMidiOut;
 	MIDIHDR header;
 	BYTE GMSystemOn[] = { 0xf0, 0x7e, 0x7f, 0x09, 0x01, 0xf7 };
 
@@ -58,23 +61,58 @@ int WINAPI WinMain(
 
 	if (!hwnd) return 0;
 
-	midiOutOpen(&hMidiOut, MIDI_MAPPER, 0, 0, 0);
+	dvorakToTone[187] = 0;
+	dvorakToTone[79] = 1;
+	dvorakToTone[81] = 2;
+	dvorakToTone[69] = 3;
+	dvorakToTone[74] = 4;
+	dvorakToTone[85] = 5;
+	dvorakToTone[75] = 6;
+	dvorakToTone[66] = 7;
+	dvorakToTone[68] = 8;
+	dvorakToTone[72] = 9;
+	dvorakToTone[77] = 10;
+	dvorakToTone[87] = 11;
+	dvorakToTone[78] = 12;
+	dvorakToTone[90] = 13;
+
+	qwertyToTone['z'] = 0;
+	qwertyToTone['s'] = 1;
+	qwertyToTone['x'] = 2;
+	qwertyToTone['d'] = 3;
+	qwertyToTone['c'] = 4;
+	qwertyToTone['f'] = 5;
+	qwertyToTone['v'] = 6;
+	qwertyToTone['n'] = 7;
+	qwertyToTone['j'] = 8;
+	qwertyToTone['m'] = 9;
+	qwertyToTone['k'] = 10;
+	qwertyToTone[188] = 11;
+	qwertyToTone['l'] = 12;
+	qwertyToTone[190] = 13;
+
+	MMRESULT result = midiOutOpen(&hMidiOut, MIDI_MAPPER, 0, 0, 0);
+	if (result != 0)
+	{
+		MessageBox(NULL, TEXT("Failed to open MIDI Out"), TEXT("ERRER"), MB_OK);
+		return 0;
+	}
 
 	/* GMシステムオン */
+	//ZeroMemory(&hMidiOut, sizeof(HMIDIOUT));
 	ZeroMemory(&header, sizeof(MIDIHDR));
 	header.lpData = (LPSTR)GMSystemOn;
 	header.dwBufferLength = sizeof(GMSystemOn);
 	header.dwFlags = 0;
 
 	/* GM音源で鳴らすように指示を出す */
-	//midiOutPrepareHeader(hMidiOut, &header, sizeof(MIDIHDR));
-	//midiOutLongMsg(hMidiOut, &header, sizeof(MIDIHDR));
-	//midiOutUnprepareHeader(hMidiOut, &header, sizeof(MIDIHDR));
+	midiOutPrepareHeader(hMidiOut, &header, sizeof(MIDIHDR));
+	midiOutLongMsg(hMidiOut, &header, sizeof(MIDIHDR));
+	midiOutUnprepareHeader(hMidiOut, &header, sizeof(MIDIHDR));
 
 	/* ハープの音色を使用 */
-	//midiOutShortMsg(hMidiOut, 0x00002ec0);
-
-	midiOutShortMsg(hMidiOut, 0x007f3c80);
+	midiOutShortMsg(hMidiOut, 0x2ec0);
+	midiOutShortMsg(hMidiOut, 0x7f3c90);	// 7f velocity, 3c tone, 90 keyon
 
 	ZeroMemory(&msg, sizeof(msg));
 	while (msg.message != WM_QUIT)
@@ -97,6 +135,10 @@ int WINAPI WinMain(
 LRESULT CALLBACK WndProc(
 	HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	int keydownTone = -1;
+	auto dvorakItr = dvorakToTone.find(wParam);
+	auto qwertyItr = qwertyToTone.find(wParam);
+
 	switch (uMsg)
 	{
 	case WM_CREATE:
@@ -110,11 +152,30 @@ LRESULT CALLBACK WndProc(
 		case VK_ESCAPE:
 			dvorakMode = !dvorakMode;
 			break;
-		case VK_LSHIFT:
-			break;
-		case VK_RSHIFT:
-			break;
+
 		default:
+			if (dvorakMode)
+			{
+				if (dvorakItr != dvorakToTone.end())
+				{
+					keydownTone = dvorakItr->second;
+				}
+				else
+				{
+					// 音高キー以外
+				}
+			}
+			else
+			{
+				if (qwertyItr != qwertyToTone.end())
+				{
+					keydownTone = qwertyItr->second;
+				}
+				else
+				{
+					// 音高キー以外
+				}
+			}
 			break;
 		}
 
