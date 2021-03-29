@@ -204,10 +204,14 @@ void Render(HWND hwnd)
 	GetClientRect(hwnd, &client);
 	FillRect(hBackDC, &client, (HBRUSH)GetStockObject(WHITE_BRUSH));
 
+	/* レンダリングの本体 */
+
 	if (dvorakMode)
 		TextOut(hBackDC, 10, 10, enableDvorak, lstrlen(enableDvorak));
 	else
 		TextOut(hBackDC, 10, 10, disableDvorak, lstrlen(disableDvorak));
+
+	/* 本体ここまで */
 
 	hdc = GetDC(hwnd);
 	BitBlt(
