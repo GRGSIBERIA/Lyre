@@ -2,6 +2,9 @@
 #include <mmsystem.h>
 #include <unordered_map>
 
+#include "global.hpp"
+#include "midisequence.h"
+
 /******************************************************************
  * 関数の前方宣言
  ******************************************************************/
@@ -15,16 +18,7 @@ void CreateBuffer(HWND hwnd);
 
 void Render(HWND hwnd);
 
-/******************************************************************
- * グローバル変数の宣言
- ******************************************************************/
 
-HDC hBackDC = NULL;			//!< バックバッファ
-HBITMAP hBackBitmap = NULL;	//!< バックバッファのビットマップ領域
-bool dvorakMode = false;	//!< Dvorakモードの有無
-
-std::unordered_map<int, int> dvorakToTone;
-std::unordered_map<int, int> qwertyToTone;
 
 int WINAPI WinMain(
 	HINSTANCE hInstance, HINSTANCE hPrevInstance,
@@ -34,7 +28,6 @@ int WINAPI WinMain(
 	WNDCLASS wc;
 	HWND hwnd;
 	MSG msg;
-	HMIDIOUT hMidiOut;
 	MIDIHDR header;
 	BYTE GMSystemOn[] = { 0xf0, 0x7e, 0x7f, 0x09, 0x01, 0xf7 };
 
@@ -61,35 +54,8 @@ int WINAPI WinMain(
 
 	if (!hwnd) return 0;
 
-	dvorakToTone[187] = 0;
-	dvorakToTone[79] = 1;
-	dvorakToTone[81] = 2;
-	dvorakToTone[69] = 3;
-	dvorakToTone[74] = 4;
-	dvorakToTone[85] = 5;
-	dvorakToTone[75] = 6;
-	dvorakToTone[66] = 7;
-	dvorakToTone[68] = 8;
-	dvorakToTone[72] = 9;
-	dvorakToTone[77] = 10;
-	dvorakToTone[87] = 11;
-	dvorakToTone[78] = 12;
-	dvorakToTone[90] = 13;
-
-	qwertyToTone['z'] = 0;
-	qwertyToTone['s'] = 1;
-	qwertyToTone['x'] = 2;
-	qwertyToTone['d'] = 3;
-	qwertyToTone['c'] = 4;
-	qwertyToTone['f'] = 5;
-	qwertyToTone['v'] = 6;
-	qwertyToTone['n'] = 7;
-	qwertyToTone['j'] = 8;
-	qwertyToTone['m'] = 9;
-	qwertyToTone['k'] = 10;
-	qwertyToTone[188] = 11;
-	qwertyToTone['l'] = 12;
-	qwertyToTone[190] = 13;
+	/* キーバインディングの設定 */
+	GenerateToToneKeyboardBinding(dvorakToTone, qwertyToTone);
 
 	MMRESULT result = midiOutOpen(&hMidiOut, MIDI_MAPPER, 0, 0, 0);
 	if (result != 0)
@@ -112,7 +78,8 @@ int WINAPI WinMain(
 
 	/* ハープの音色を使用 */
 	midiOutShortMsg(hMidiOut, 0x2ec0);
-	midiOutShortMsg(hMidiOut, 0x7f3c90);	// 7f velocity, 3c tone, 90 keyon
+	//midiOutShortMsg(hMidiOut, 0x7f3c90);	// 7f velocity, 3c tone, 90 keyon
+	MakeSound(hMidiOut, 0x3c, 0x7f);
 
 	ZeroMemory(&msg, sizeof(msg));
 	while (msg.message != WM_QUIT)
@@ -136,6 +103,7 @@ LRESULT CALLBACK WndProc(
 	HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	int keydownTone = -1;
+	bool isMIDIKeyboardHit = false;
 	auto dvorakItr = dvorakToTone.find(wParam);
 	auto qwertyItr = qwertyToTone.find(wParam);
 
@@ -159,6 +127,7 @@ LRESULT CALLBACK WndProc(
 				if (dvorakItr != dvorakToTone.end())
 				{
 					keydownTone = dvorakItr->second;
+					isMIDIKeyboardHit = true;
 				}
 				else
 				{
@@ -170,6 +139,7 @@ LRESULT CALLBACK WndProc(
 				if (qwertyItr != qwertyToTone.end())
 				{
 					keydownTone = qwertyItr->second;
+					isMIDIKeyboardHit = true;
 				}
 				else
 				{
@@ -177,6 +147,11 @@ LRESULT CALLBACK WndProc(
 				}
 			}
 			break;
+		}
+
+		if (isMIDIKeyboardHit)
+		{
+			MakeSound(hMidiOut, keydownTone + 0x3c, 0x7f);
 		}
 
 		InvalidateRect(hwnd, NULL, FALSE);
