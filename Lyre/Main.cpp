@@ -2,6 +2,10 @@
 #include <mmeapi.h>
 #include <mmsystem.h>
 
+/******************************************************************
+ * 関数の前方宣言
+ ******************************************************************/
+
 LRESULT CALLBACK WndProc(
 	HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -11,16 +15,14 @@ void CreateBuffer(HWND hwnd);
 
 void Render(HWND hwnd);
 
-/**
- * バックバッファの定義
- */
-HDC hBackDC = NULL;
-HBITMAP hBackBitmap = NULL;
+/******************************************************************
+ * グローバル変数の宣言
+ ******************************************************************/
 
-/**
- * DVORAKモードの操作有無
- */
-bool dvorakMode = false;
+HDC hBackDC = NULL;			//!< バックバッファ
+HBITMAP hBackBitmap = NULL;	//!< バックバッファのビットマップ領域
+bool dvorakMode = false;	//!< Dvorakモードの有無
+HMIDIOUT hMidiOut;
 
 int WINAPI WinMain(
 	HINSTANCE hInstance, HINSTANCE hPrevInstance,
@@ -30,7 +32,8 @@ int WINAPI WinMain(
 	WNDCLASS wc;
 	HWND hwnd;
 	MSG msg;
-	HMIDIOUT hMidiOut;
+	MIDIHDR header;
+	BYTE GMSystemOn[] = { 0xf0, 0x7e, 0x7f, 0x09, 0x01, 0xf7 };
 
 	wc.style = CS_HREDRAW | CS_VREDRAW;
 	wc.lpfnWndProc = WndProc;
@@ -56,7 +59,22 @@ int WINAPI WinMain(
 	if (!hwnd) return 0;
 
 	midiOutOpen(&hMidiOut, MIDI_MAPPER, 0, 0, 0);
-	midiOutShortMsg(hMidiOut, 0x007f3c90);
+
+	/* GMシステムオン */
+	ZeroMemory(&header, sizeof(MIDIHDR));
+	header.lpData = (LPSTR)GMSystemOn;
+	header.dwBufferLength = sizeof(GMSystemOn);
+	header.dwFlags = 0;
+
+	/* GM音源で鳴らすように指示を出す */
+	//midiOutPrepareHeader(hMidiOut, &header, sizeof(MIDIHDR));
+	//midiOutLongMsg(hMidiOut, &header, sizeof(MIDIHDR));
+	//midiOutUnprepareHeader(hMidiOut, &header, sizeof(MIDIHDR));
+
+	/* ハープの音色を使用 */
+	//midiOutShortMsg(hMidiOut, 0x00002ec0);
+
+	midiOutShortMsg(hMidiOut, 0x007f3c80);
 
 	ZeroMemory(&msg, sizeof(msg));
 	while (msg.message != WM_QUIT)
@@ -91,6 +109,10 @@ LRESULT CALLBACK WndProc(
 		{
 		case VK_ESCAPE:
 			dvorakMode = !dvorakMode;
+			break;
+		case VK_LSHIFT:
+			break;
+		case VK_RSHIFT:
 			break;
 		default:
 			break;
