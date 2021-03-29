@@ -1,10 +1,26 @@
 ﻿#include <windows.h>
 #include <mmeapi.h>
+#include <mmsystem.h>
 
 LRESULT CALLBACK WndProc(
 	HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 void CenteringWindow(HWND& hwnd);
+
+void CreateBuffer(HWND hwnd);
+
+void Render(HWND hwnd);
+
+/**
+ * バックバッファの定義
+ */
+HDC hBackDC = NULL;
+HBITMAP hBackBitmap = NULL;
+
+/**
+ * DVORAKモードの操作有無
+ */
+bool dvorakMode = false;
 
 int WINAPI WinMain(
 	HINSTANCE hInstance, HINSTANCE hPrevInstance,
@@ -42,10 +58,16 @@ int WINAPI WinMain(
 	midiOutOpen(&hMidiOut, MIDI_MAPPER, 0, 0, 0);
 	midiOutShortMsg(hMidiOut, 0x007f3c90);
 
-	while (GetMessage(&msg, NULL, 0, 0) > 0)
+	ZeroMemory(&msg, sizeof(msg));
+	while (msg.message != WM_QUIT)
 	{
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
+		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+		else
+			Render(hwnd);
 	}
 
 	midiOutReset(hMidiOut);
@@ -57,34 +79,29 @@ int WINAPI WinMain(
 LRESULT CALLBACK WndProc(
 	HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	HDC hdc;
-	PAINTSTRUCT ps;
-
 	switch (uMsg)
 	{
 	case WM_CREATE:
 		CenteringWindow(hwnd);
+		CreateBuffer(hwnd);
 		return 0;
 
-	case WM_PAINT:
-		hdc = BeginPaint(hwnd, &ps);
-		RECT client;
-
-		// 白いブラシを選択
-		SelectObject(hdc, GetStockObject(WHITE_BRUSH));
-		
-		// 矩形で塗りつぶし
-		GetClientRect(hwnd, &client);
-		Rectangle(hdc, 0, 0, client.right, client.bottom);
-		EndPaint(hwnd, &ps);
-
 	case WM_KEYDOWN:
-		hdc = GetDC(hwnd);
-		TextOut(hdc, 10, 10, (PTSTR)&wParam, 1);
-		ReleaseDC(hwnd, hdc);
+		switch (wParam)
+		{
+		case VK_ESCAPE:
+			dvorakMode = !dvorakMode;
+			break;
+		default:
+			break;
+		}
+
+		InvalidateRect(hwnd, NULL, FALSE);
 		return 0;
 
 	case WM_DESTROY:
+		DeleteDC(hBackDC);
+		DeleteObject(hBackBitmap);
 		PostQuitMessage(0);
 		return 0;
 	}
@@ -102,4 +119,43 @@ void CenteringWindow(HWND& hwnd)
 	SetWindowPos(hwnd, NULL,
 		(dispW - W) >> 1, (dispH - H) >> 1,
 		W, H, SWP_SHOWWINDOW);
+}
+
+/**
+ * バックバッファの生成と初期化
+ */
+void CreateBuffer(HWND hwnd)
+{
+	HDC hdc;
+	hdc = GetDC(hwnd);
+	hBackDC = CreateCompatibleDC(hdc);
+	hBackBitmap = CreateCompatibleBitmap(hdc, 640, 480);
+	SelectObject(hBackDC, hBackBitmap);
+	ReleaseDC(hwnd, hdc);
+}
+
+void Render(HWND hwnd)
+{
+	HDC hdc;
+	RECT client;
+
+	LPCTSTR enableDvorak = TEXT("DVORAK MODE");
+	LPCTSTR disableDvorak = TEXT("QWERTY MODE");
+
+	// 背景色で塗りつぶし
+	GetClientRect(hwnd, &client);
+	FillRect(hBackDC, &client, (HBRUSH)GetStockObject(WHITE_BRUSH));
+
+	if (dvorakMode)
+		TextOut(hBackDC, 10, 10, enableDvorak, lstrlen(enableDvorak));
+	else
+		TextOut(hBackDC, 10, 10, disableDvorak, lstrlen(disableDvorak));
+
+	hdc = GetDC(hwnd);
+	BitBlt(
+		hdc, 0, 0, 
+		client.right - client.left, 
+		client.bottom - client.top, 
+		hBackDC, 0, 0, SRCCOPY);
+	ReleaseDC(hwnd, hdc);
 }
