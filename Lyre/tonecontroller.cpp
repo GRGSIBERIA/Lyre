@@ -15,7 +15,22 @@ void ToneController::KeyChange(const int num)
 	int key = num & 0b1111;
 	int minor = num & 0b10000;
 
-	if (minor > 0) key -= 3;	// マイナーキーに変更
-
+	this->isMinor = minor > 0;
 	this->key = key;
+}
+
+const int ToneController::GetTone(const int keyboardHitNum, const int leftShift, const int rightShift) const
+{
+	int mod = keyboardHitNum % 7;
+	int octave = keyboardHitNum / 7;
+
+	octave -= leftShift * 2;
+	octave += rightShift * 2;
+
+	int tone = toneSequence[mod];
+	int minor = isMinor ? -3 : 0;
+	
+	// 0x2c(C3) + 0x02(Dmaj) + 0x04(3rd) + 0x00(maj) + 0x00(O1) * 12
+	// 0x2e + 0x04 = 0x32
+	return basicTone + key + tone + isMinor + octave * 12;
 }
