@@ -24,8 +24,15 @@ const int ToneController::GetTone(const int keyboardHitNum, const int leftShift,
 	int mod = keyboardHitNum % 7;
 	int octave = keyboardHitNum / 7;
 
-	octave -= leftShift * 2;
-	octave += rightShift * 2;
+	if (leftShift > 0 && rightShift > 0)
+	{
+		octave += 2;
+	}
+	else
+	{
+		octave -= leftShift > 0 ? 1 : 0;
+		octave += rightShift > 0 ? 1 : 0;
+	}
 
 	int tone = toneSequence[mod];
 	int minor = isMinor ? -3 : 0;
