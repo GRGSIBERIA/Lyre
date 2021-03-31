@@ -151,7 +151,9 @@ LRESULT CALLBACK WndProc(
 
 		if (isMIDIKeyboardHit)
 		{
-			MakeSound(hMidiOut, keydownTone + 0x3c, 0x7f);
+			//MakeSound(hMidiOut, keydownTone + 0x3c, 0x7f);
+			int tone = controller.GetTone(keydownTone, 0, 0);
+			MakeSound(hMidiOut, tone, 0x7f);
 		}
 
 		InvalidateRect(hwnd, NULL, FALSE);

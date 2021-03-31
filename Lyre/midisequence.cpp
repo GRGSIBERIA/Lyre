@@ -2,20 +2,20 @@
 
 void GenerateToToneKeyboardBinding(std::unordered_map<int, int>& dvorakToTone, std::unordered_map<int, int>& qwertyToTone)
 {
-	dvorakToTone[187] = 0;
-	dvorakToTone[79] = 1;
-	dvorakToTone[81] = 2;
-	dvorakToTone[69] = 3;
-	dvorakToTone[74] = 4;
-	dvorakToTone[85] = 5;
-	dvorakToTone[75] = 6;
-	dvorakToTone[66] = 7;
-	dvorakToTone[68] = 8;
-	dvorakToTone[72] = 9;
-	dvorakToTone[77] = 10;
-	dvorakToTone[87] = 11;
-	dvorakToTone[78] = 12;
-	dvorakToTone[90] = 13;
+	dvorakToTone[187] = 0;	// ;
+	dvorakToTone[79] = 1;	// o
+	dvorakToTone[81] = 2;	// q
+	dvorakToTone[69] = 3;	// .
+	dvorakToTone[74] = 4;	// j
+	dvorakToTone[85] = 5;	// u
+	dvorakToTone[75] = 6;	// k
+	dvorakToTone[66] = 7;	// b
+	dvorakToTone[0x48] = 8;	// h
+	dvorakToTone[0x4d] = 9;	// m
+	dvorakToTone[0x54] = 10;	// t
+	dvorakToTone[0x57] = 11;	// v
+	dvorakToTone[0x4e] = 12;	// s
+	dvorakToTone[0x56] = 13;		// z bhmtwnv
 
 	qwertyToTone['z'] = 0;
 	qwertyToTone['s'] = 1;

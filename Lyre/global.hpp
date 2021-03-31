@@ -3,6 +3,8 @@
 #include <Windows.h>
 #include <mmsystem.h>
 
+#include "tonecontroller.h"
+
 /******************************************************************
  * グローバル変数の宣言
  ******************************************************************/
@@ -14,3 +16,5 @@ bool dvorakMode = false;	//!< Dvorakモードの有無
 std::unordered_map<int, int> dvorakToTone;
 std::unordered_map<int, int> qwertyToTone;
 HMIDIOUT hMidiOut;
+
+ToneController controller;
