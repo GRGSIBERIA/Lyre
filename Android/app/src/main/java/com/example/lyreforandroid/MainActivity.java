@@ -41,11 +41,13 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    // AudioTrackを使うとSoundPoolよりも低レイテンシで再生できるらしい
+    // https://akira-watson.com/android/audiotrack.html
     private AudioTrack BuildTrack(int num)
     {
         final int bufferSize = 0;
 
-        new AudioTrack.Builder()
+        AudioTrack track = new AudioTrack.Builder()
                 .setAudioAttributes(new AudioAttributes.Builder()
                         .setUsage(AudioAttributes.USAGE_GAME)
                         .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
@@ -58,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
                 .setBufferSizeInBytes(bufferSize)
                 .build();
 
+        return track;
     }
 
     private void wavPlay(int num)
