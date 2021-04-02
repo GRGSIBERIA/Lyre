@@ -147,32 +147,26 @@
                 android:translationY="12dp" />
 
             <Button
-                android:id="@+id/button24"
+                android:id="@+id/buttonOctave1"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:text="@string/_1" />
 
             <Button
-                android:id="@+id/button23"
+                android:id="@+id/buttonOctave2"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:text="@string/_2" />
 
             <Button
-                android:id="@+id/button22"
+                android:id="@+id/buttonOctave3"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:text="@string/_3" />
 
-            <Button
-                android:id="@+id/button21"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:text="@string/_4" />
         </LinearLayout>
 
         <LinearLayout
