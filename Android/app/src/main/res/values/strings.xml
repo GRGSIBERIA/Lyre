@@ -22,8 +22,8 @@
     <string name="g">G</string>
     <string name="_3">3</string>
     <string name="_4">4</string>
-    <string name="es">E#</string>
-    <string name="fs">F#</string>
-    <string name="gs">G#</string>
+    <string name="es">F#</string>
+    <string name="fs">G#</string>
+    <string name="gs">A#</string>
     <string name="cs">C#</string>
 </resources>
