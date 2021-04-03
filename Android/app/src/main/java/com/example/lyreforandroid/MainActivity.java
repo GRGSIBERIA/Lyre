@@ -15,10 +15,8 @@ import java.io.InputStream;
 public class MainActivity extends AppCompatActivity {
 
     private Button[] toneButtons;
-    private Button[] octaveButtons;
     private Button[] keyButtons;
     private AudioTrack[] tracks;
-    private int selectedOctave;
     private int selectedKey;
     private int[] scale;
     private boolean isMajor;
@@ -29,8 +27,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         isMajor = true;
-        selectedOctave = 0;
         selectedKey = 0;
 
         scale = new int[] {
@@ -38,19 +36,27 @@ public class MainActivity extends AppCompatActivity {
         };
 
         toneButtons = new Button[] {
-                findViewById(R.id.button1),
-                findViewById(R.id.button2),
-                findViewById(R.id.button3),
-                findViewById(R.id.button4),
-                findViewById(R.id.button5),
-                findViewById(R.id.button6),
-                findViewById(R.id.button7)
-        };
-
-        octaveButtons = new Button[] {
-                findViewById(R.id.buttonOctave1),
-                findViewById(R.id.buttonOctave2),
-                findViewById(R.id.buttonOctave3)
+                findViewById(R.id.button11),
+                findViewById(R.id.button12),
+                findViewById(R.id.button13),
+                findViewById(R.id.button14),
+                findViewById(R.id.button15),
+                findViewById(R.id.button16),
+                findViewById(R.id.button17),
+                findViewById(R.id.button21),
+                findViewById(R.id.button22),
+                findViewById(R.id.button23),
+                findViewById(R.id.button24),
+                findViewById(R.id.button25),
+                findViewById(R.id.button26),
+                findViewById(R.id.button27),
+                findViewById(R.id.button31),
+                findViewById(R.id.button32),
+                findViewById(R.id.button33),
+                findViewById(R.id.button34),
+                findViewById(R.id.button35),
+                findViewById(R.id.button36),
+                findViewById(R.id.button37)
         };
 
         keyButtons = new Button[] {
@@ -65,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
                 findViewById(R.id.buttonGs),
                 findViewById(R.id.buttonA),
                 findViewById(R.id.buttonAs),
+                findViewById(R.id.buttonB)
         };
 
         Button isMajorBtn = findViewById(R.id.isMinor);
@@ -82,15 +89,6 @@ public class MainActivity extends AppCompatActivity {
             toneButtons[i].setSoundEffectsEnabled(false);
         }
 
-        for (int i = 0; i < octaveButtons.length; ++i)
-        {
-            int finalI = i;
-            octaveButtons[i].setOnClickListener(v -> {
-                selectedOctave = finalI;
-            });
-            octaveButtons[i].setSoundEffectsEnabled(false);
-        }
-
         for (int i = 0; i < keyButtons.length; ++i)
         {
             int finalI = i;
@@ -99,8 +97,6 @@ public class MainActivity extends AppCompatActivity {
             });
             keyButtons[i].setSoundEffectsEnabled(false);
         }
-
-
 
         tracks = new AudioTrack[] {
                 BuildTrack(R.raw.a21),  // A0
@@ -190,7 +186,7 @@ public class MainActivity extends AppCompatActivity {
                         .build())
                 .setAudioFormat(new AudioFormat.Builder()
                         .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-                        .setSampleRate(48000)
+                        .setSampleRate(SamplingRate)
                         .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
                         .build())
                 .setBufferSizeInBytes(wavData.length - 44)
@@ -199,6 +195,8 @@ public class MainActivity extends AppCompatActivity {
 
         // data+4バイト目以降の数百バイトが0xFFFFになって不安定
         wavData[802] = 0; wavData[803] = 0;
+        wavData[wavData.length - 2] = 0; wavData[wavData.length - 1] = 0;
+
         track.write(wavData, 802, wavData.length - 802);
 
         return track;
@@ -208,7 +206,7 @@ public class MainActivity extends AppCompatActivity {
     {
         int majorUp = isMajor ? 3 : 0;
 
-        int toneId = selectedKey + majorUp + scale[num] + selectedOctave * 12;
+        int toneId = selectedKey + majorUp + scale[num % 7] + (int)(num / 7) * 12;
 
         tracks[toneId].stop();
         tracks[toneId].play();
