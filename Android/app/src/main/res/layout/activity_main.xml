@@ -154,41 +154,8 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="70dp"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/textView"
-                android:layout_width="128dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:text="@string/octave"
-                android:textAlignment="center"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:translationY="12dp" />
-
-            <Button
-                android:id="@+id/buttonOctave1"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:text="@string/_1" />
-
-            <Button
-                android:id="@+id/buttonOctave2"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:text="@string/_2" />
-
-            <Button
-                android:id="@+id/buttonOctave3"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:text="@string/_3" />
-
-        </LinearLayout>
+            android:orientation="horizontal"
+            tools:visibility="invisible"/>
 
         <LinearLayout
             android:layout_width="match_parent"
