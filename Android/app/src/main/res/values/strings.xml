@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">Lyre for Android</string>
+    <string name="i">I</string>
+    <string name="ii">II</string>
+    <string name="iii">III</string>
+    <string name="iv">IV</string>
+    <string name="v">V</string>
+    <string name="vi">VI</string>
+    <string name="vii">VII</string>
+    <string name="octave">Octave</string>
+    <string name="_1">1</string>
+    <string name="c">C</string>
+    <string name="key">Key</string>
+    <string name="is_minor_key">is minor key</string>
+    <string name="b">B</string>
+    <string name="_2">2</string>
+    <string name="d">D</string>
+    <string name="ds">D#</string>
+    <string name="a">A</string>
+    <string name="e">E</string>
+    <string name="f">F</string>
+    <string name="g">G</string>
+    <string name="_3">3</string>
+    <string name="_4">4</string>
+    <string name="es">F#</string>
+    <string name="fs">G#</string>
+    <string name="gs">A#</string>
+    <string name="cs">C#</string>
+</resources>
