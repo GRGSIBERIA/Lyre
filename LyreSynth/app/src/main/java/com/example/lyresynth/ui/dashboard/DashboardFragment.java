@@ -13,10 +13,13 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.lyresynth.R;
+import com.google.android.material.textfield.TextInputEditText;
 
 public class DashboardFragment extends Fragment {
 
     private DashboardViewModel dashboardViewModel;
+
+    private int showFrequency;  // 表示する周期
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -30,6 +33,11 @@ public class DashboardFragment extends Fragment {
                 textView.setText(s);
             }
         });
+
+        final TextInputEditText showOfFrequency = root.findViewById(R.id.editTextShowOfFrequency);
+        showFrequency = Integer.parseInt(String.valueOf(showOfFrequency.getText()));
+
+
         return root;
     }
 }
